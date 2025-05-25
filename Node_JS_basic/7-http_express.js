@@ -4,7 +4,6 @@ const fs = require('fs');
 const app = express();
 const port = 1245;
 
-
 function countStudents(path) {
   return new Promise((resolve, reject) => {
     fs.readFile(path, 'utf8', (err, data) => {
@@ -43,7 +42,7 @@ app.get('/students', async (req, res) => {
     });
     res.send(response);
   } catch (err) {
-    const errorResponse = 'This is the list of our students\n' + err.message;
+    const errorResponse = `This is the list of our students\n${err.message}`;
     res.type('text/plain');
     res.send(errorResponse);
   }
