@@ -1,6 +1,5 @@
 const express = require('express');
 const fs = require('fs');
-const process = require('process');
 
 const app = express();
 const port = 1245;
@@ -14,16 +13,14 @@ function countStudents(path) {
         return;
       }
       const lines = data.split('\n').filter((line) => line.trim() !== '');
-      const header = lines.shift().split(',');
-      const students = lines.map((line) => line.split(','));
+      lines.shift();
       const counts = {};
-      for (const student of students) {
-        const firstname = student[0];
-        const field = student[3];
+      lines.forEach((line) => {
+        const [firstname,, , field] = line.split(',');
         if (!counts[field]) counts[field] = [];
         counts[field].push(firstname);
-      }
-      const total = students.length;
+      });
+      const total = lines.length;
       resolve({ total, counts });
     });
   });
@@ -41,20 +38,19 @@ app.get('/students', async (req, res) => {
     const { total, counts } = await countStudents(dbFile);
     let response = 'This is the list of our students';
     response += `\nNumber of students: ${total}`;
-    for (const [field, students] of Object.entries(counts)) {
+    Object.entries(counts).forEach(([field, students]) => {
       response += `\nNumber of students in ${field}: ${students.length}. List: ${students.join(', ')}`;
-    }
+    });
     res.send(response);
   } catch (err) {
-    res.send(err.message);
+    const errorResponse = 'This is the list of our students\n' + err.message;
+    res.type('text/plain');
+    res.send(errorResponse);
   }
 });
 
 if (require.main === module) {
-  app.listen(port, () => {
-    console.log(`Server is listening on port ${port}`);
-  });
+  app.listen(port);
 }
 
 module.exports = app;
-
